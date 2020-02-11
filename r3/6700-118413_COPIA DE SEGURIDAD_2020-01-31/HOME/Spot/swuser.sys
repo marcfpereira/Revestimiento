@@ -1,0 +1,435 @@
+%%%
+  VERSION: 1
+  LANGUAGE: ENGLISH
+%%%
+
+MODULE SWUSER (SYSMODULE, NOSTEPIN)
+
+!---------------------------------------
+! G L O B A L  D A T A
+!--------------------------------------- 
+
+ ! Definition of process spot data
+ RECORD spotdata
+    dnum prog_no;
+    num tip_force;
+ ENDRECORD
+
+ ! Definition of force data
+ RECORD forcedata
+    num tip_force;
+    num force_time;
+ ENDRECORD
+
+  ! Definition of simulation data
+ RECORD simdata
+    num sim_type;
+    num sim_time;
+    bool inhib_close;
+ ENDRECORD
+
+ ! Definition of process gun data
+ RECORD gundata
+    string gun_name;
+    num weld_counter;
+    num max_nof_welds;
+ ENDRECORD
+
+ ! Description: 
+ ! CONST string Version_XXXXXXXX := "5.0.0";
+ !
+ !          XXXXXXXX - Module name
+ !                 1 - version number  (changed of SEROP) 
+ !                 2 - revision number (changed of SEROP)
+ !                 3 - revision number (changed of SEROP)
+ CONST string Version_SWUSER := "6.04.0";
+
+! Note! Any change in this module requires a p-start of the system 
+! since the module is loaded in all spot tasks.
+
+!---------------------------------------------
+!  CUSTOMIZED MODULE FOR ONE WELD EQUIPMENT
+!---------------------------------------------
+
+ ! Gundata for each gun
+ PERS gundata curr_gundata{1} := [["PGUN_1", 0, 1000]];
+
+ ! Spotdata.
+ ! Latest used spot data parameters in the spot instructions
+ ! Also used in manual actions (ManualSpot)
+ PERS spotdata curr_spotdata{1} := [[0, 0]];
+  
+ ! Simulation data for testing:
+ ! sim_type = 0, no simulation
+ ! sim_type = 1, simulation in robot controller (simulated weld, no start signal)
+ ! sim_type = 2, simulation in weld controller (inhibited weld, dry weld)
+ ! sim_time = simulation time (s) if sime_type = 1
+ ! inhib_close = TRUE, no gun closing during simulation
+ PERS simdata curr_simdata := [0, 0.5, FALSE];
+
+ ! Forcedata.
+ ! Latest used force data parameters in the SetForce instruction
+ ! Also used in manual actions (ManGunControl/ManualSetForce)
+ PERS forcedata curr_forcedata{1} := [[0, 0]];
+
+! Length of reset pulse (s)
+ PERS num reset_fault_time := 0.5;
+
+ ! Wait time after reset pulse (s)
+ PERS num reset_fault_idle := 0.5;
+
+ ! Max wait time for the water to start (s)
+ PERS num flow_timeout := 2;
+
+ ! Wait time for the timer ready signal (s)
+ PERS num timer_ready_tout := 2;
+
+!---------------------------------------
+! E Q U I P M E N T    S I G N A L S
+!---------------------------------------
+
+ ! User signal (DO) to close the gun
+ LOCAL VAR signaldo close_gun;
+
+ ! User signal (DO) to open the gun to the retract stroke
+ LOCAL VAR signaldo open_hlift;
+
+ ! User signal (DO) to close the gun to the workstroke
+ LOCAL VAR signaldo close_hlift;
+
+ ! User signal (DO) to set the equalize signal
+ LOCAL VAR signaldo equalizing;
+
+ ! User signal (GO) to set the pressure
+ LOCAL VAR signalgo press_group;
+
+ ! User signal (DI) to check if pressure is established
+ LOCAL VAR signaldi pressure_ok;
+
+ ! User signal (DI) to check if the gun is open
+ LOCAL VAR signaldi gun_open;
+
+ ! User signal (DI) to check if the highlift position is reached
+ LOCAL VAR signaldi hlift_open;
+
+ ! User signal (DO) to reset the timer
+ LOCAL VAR signaldo reset_fault;
+
+ ! User signal (DI) to check if the timer is ready
+ LOCAL VAR signaldi timer_ready;
+
+ ! User signal (DI) to check the weld contactor
+ LOCAL VAR signaldi weld_contactor;
+
+ ! User signal (DI) to check the water supply1
+ LOCAL VAR signaldi flow1_ok;
+
+ ! User signal (DI) to check the water supply1
+ LOCAL VAR signaldi flow2_ok;
+
+ ! User signal (DI) to check if over temperature
+ LOCAL VAR signaldi temp_ok;
+
+ ! User signal (DI) to check the air pressure in
+ ! the equalize cylinder
+ LOCAL VAR signaldi air_ok;
+
+ ! User signal (DI) to check if the equipment is ok
+ LOCAL VAR signaldi equipment_ok;
+ 
+ ! User signal (DO) to start the water
+ LOCAL VAR signaldo start_water;
+
+ ! User signal (DI) to check if the water flow is ok
+ LOCAL VAR signaldi water_ok;
+ 
+!---------------------------------------
+! P R O C E S S   H O O K S
+!---------------------------------------
+
+ ! Common comment for the following process hooks:
+ ! If a fault is detected, just put an error message in
+ ! the variable ErrText. Then the operator must decide what to do.
+ ! NOTE! Do not add any time consuming code in these hooks, 
+ ! it will affect the cycle time negatively.
+ !
+ ! SwInitUserIO is called at the start of motion just before
+ ! calling the first process hook SwPrepare.
+ ! It can be used to define the signals needed in the process hooks.
+ ! Example: AliasIO FromSignal, ToSignal;
+ PROC SwInitUserIO(num GunNum)
+     
+     TEST GunNum
+        CASE 1:	
+        AliasIO do_cerrar_pinza, close_gun;
+        AliasIO do_abrir_pinza, open_hlift;
+        AliasIO do_aproximar_pinza, close_hlift;
+        AliasIO di_Air_ok, pressure_ok;
+        AliasIO di_pinza_Abierta, gun_open;
+        AliasIO di_pinza_Aproximada, hlift_open;
+        AliasIO doequalize, equalizing;
+        AliasIO do_Reset_fallos, reset_fault;
+        AliasIO di_control_ok, timer_ready;
+        AliasIO di_Soldadura_act, weld_contactor;
+        AliasIO di_flow1_ok, flow1_ok;
+        AliasIO di_flow2_ok, flow2_ok;
+        AliasIO di_Air_ok, air_ok;
+        !AliasIO diTrafoTempOk, temp_ok;
+        AliasIO di_Control_OK, equipment_ok;
+        AliasIO go_Progr_soldad, press_group;
+        ! Supervision signals
+        AliasIO do_Abrir_Agua, start_water;
+        AliasIO di_flow1_ok, water_ok;
+    ENDTEST
+
+ ENDPROC
+
+ ! This routine is called at the start of motion.
+ ! Most of the dependent equipment should be checked here
+ ! in order not to increase cycle time.
+ PROC SwPrepare(num GunNum, INOUT string ErrText)
+
+ ENDPROC
+
+ ! This routine is called a predefined time, pre_close_time in
+ ! gundata, before the robot reaches the weldposition.
+ PROC SwCloseGun(num GunNum, INOUT string ErrText)
+     
+      VAR bool timeout;
+    VAR bool inhib_close;
+    VAR num robno;
+
+    SwGetRobNo robno;
+
+    IF (curr_simdata.sim_type <> 0 AND curr_simdata.inhib_close)
+        inhib_close := TRUE;
+
+    ! Set the gun to workstroke position and open the gun.
+    SetDO open_hlift, 0;
+    SetDO close_hlift, 1;
+    SetDO close_gun, 0;
+
+    WaitDI gun_open, 1 \MaxTime := 1 \TimeFlag := timeout;
+    IF timeout THEN
+        ErrText := SwTextGet(149) + " " + SwTextGet(150);   ! Gun open position not reached
+        RETURN;
+    ENDIF
+
+    IF inhib_close = FALSE THEN
+        ! Don't close the gun if CloseHighLift is executed.
+        IF ErrText <> "CloseHighLift" THEN
+            ! Close the gun.
+            SetDO close_gun, 1;
+      ENDIF      
+    ENDIF
+
+ ERROR
+   IF ERRNO = ERR_NORUNUNIT THEN
+       ErrText := "I/O unit lost";
+       RETURN;
+   ENDIF
+ ENDPROC
+
+ ! This routine is called in the weldposition and is the
+ ! last routine to be called before the start signal is
+ ! sent to the timer.
+ PROC SwPreWeld(num GunNum, INOUT string ErrText)
+     
+     VAR bool timeout;
+
+    IF (curr_simdata.sim_type = 0 AND timer_ready = 0) THEN
+        ! Wait for the timer ready signal.
+        WaitDI timer_ready, 1 \MaxTime := timer_ready_tout \TimeFlag := timeout;
+        IF timeout THEN
+            !SwResetFault GunNum;
+            ErrText := SwTextGet(146); ! Timer not ready
+            RETURN;
+        ENDIF
+    ENDIF
+
+    IF curr_simdata.sim_type = 0 THEN
+        ! Wait for the pressure ok signal.
+        WaitDI pressure_ok, 1 \MaxTime := 3 \TimeFlag := timeout;
+        IF timeout THEN
+            ErrText := SwTextGet(151); ! Pressure not ok
+            RETURN;
+        ENDIF
+    ENDIF
+
+ ERROR
+   IF ERRNO = ERR_NORUNUNIT THEN
+       ErrText := "I/O unit lost";
+       RETURN;
+   ENDIF
+
+ ENDPROC
+
+ ! This routine is called just after receiving 
+ ! weld complete signal.
+ PROC SwOpenGun(num GunNum, INOUT string ErrText)
+     
+     VAR bool timeout;
+    VAR num robno;
+
+    SwGetRobNo robno;
+
+    ! Don't open the gun if OpenHighLift is executed.
+    IF ErrText <> "OpenHighLift" THEN
+        ! Open the gun.
+        PulseDO\PLength:=1, do_desaproximar_pinza;
+        SetDO close_gun, 0;
+        SetDO do_Abrir_Pinza,1;
+        
+    ENDIF
+
+    ! Set the gun to workstroke or highlift position depending on choice in instruction.
+    IF SwGetCurrOpenHighLift() = TRUE THEN
+        SetDO close_hlift, 0;
+        PulseDO\PLength:=1, do_desaproximar_pinza;
+        SetDO open_hlift, 1;
+        WaitTime 0.5;
+        WaitDI gun_open,1 \MaxTime := 2 \TimeFlag := timeout;
+        IF timeout THEN
+            ErrText := SwTextGet(152) + " " + SwTextGet(59);    ! High Lift position not reached
+            RETURN;
+        ENDIF
+    ELSE
+        SetDO do_desaproximar_pinza,0;
+        SetDO close_hlift, 1;
+        SetDO open_hlift, 0;
+        WaitTime 1;
+        WaitDI hlift_open,1 \MaxTime := 3 \TimeFlag := timeout;
+        IF timeout THEN
+            ErrText := SwTextGet(152) + " " + SwTextGet(150);   ! Gun open position not reached
+            RETURN;
+        ENDIF
+    ENDIF
+
+ ERROR
+   IF ERRNO = ERR_NORUNUNIT THEN
+       ErrText := "I/O unit lost";
+       RETURN;
+   ENDIF
+
+ ENDPROC
+
+ ! This routine is the last process hook called
+ ! just after the process hook SwOpenGun.
+ PROC SwPostWeld (num GunNum, INOUT string ErrText)
+
+    ! Update weld counter if no simulation
+    IF curr_simdata.sim_type = 0 THEN
+        curr_gundata{GunNum}.weld_counter := curr_gundata{GunNum}.weld_counter+1;
+    ENDIF
+
+ ENDPROC
+
+ ! This routine is called when the time weld_timeout has
+ ! elapsed without receiving the weld complete signal or when
+ ! receiving the weld fault signal from the weld timer during the
+ ! weld sequence. It is called before the error handling is activated.
+ !
+ ! Here the weld equipment, timer status can be checked if needed
+ ! and a relevant error text can be returned to the kernel.
+ PROC SwWeldFault(num GunNum, INOUT string ErrText)
+
+ ENDPROC
+
+ !----------------------------------------------------
+ ! U S E R  D E F I N E D  E R R O R  R E C O V E R Y
+ !----------------------------------------------------
+
+ ! SwErrorRecover:
+ ! This routine will be called from the motion task instead of the internal error
+ ! handling if the used defined error recovery is configured.
+ ! RobotStudio: Configuration - Process - Spot Error Handling - User defined error handling = Yes
+ !
+ ! Possible err types:
+ ! SW_PREPARE_ERR -     Prepare error
+ ! SW_CLOSE_GUN_ERR -   Close gun error
+ ! SW_PRE_WELD_ERR -    Pre weld error
+ ! SW_WELD_ERR -        Weld error
+ ! SW_OPEN_GUN_ERR  -   Open gun error
+ ! SW_POST_WELD_ERR -   Post weld error
+ ! SW_TIP_POS_ERR -     Tip position error
+ ! SW_PROG_VALID_ERR -	Program valid timeout
+ ! SW_WATER_SUP_ERR -	Water supervision timeout
+ !
+ ! Return values: /SW_IGNORE/SW_RETRY/SW_SKIP
+ PROC SwErrorRecover (num GunNum,
+                      num ErrType,
+                      string ErrText,
+                      INOUT num Status)
+
+    VAR btnres answer;
+
+    TEST ErrType
+        CASE SW_PREPARE_ERR:
+            answer := UIMessageBox (\Header:= "Prepare error"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, "SKIP", "RETRY"]
+                                    \Icon := iconError);
+        CASE SW_CLOSE_GUN_ERR:
+            answer := UIMessageBox (\Header:= "Close gun error"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, "SKIP", "RETRY"]
+                                    \Icon := iconError);
+        CASE SW_PRE_WELD_ERR:
+            answer := UIMessageBox (\Header:= "Pre weld error"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, "SKIP", "RETRY"]
+                                    \Icon := iconError);
+        CASE SW_WELD_ERR:
+            answer := UIMessageBox (\Header:= "Weld error"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, "SKIP", "REWELD"]
+                                    \Icon := iconError);
+        CASE SW_OPEN_GUN_ERR:
+            answer := UIMessageBox (\Header:= "Open gun error"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, "SKIP", "RETRY"]
+                                    \Icon := iconError);
+        CASE SW_POST_WELD_ERR:
+            answer := UIMessageBox (\Header:= "Post weld error"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, "SKIP", "RETRY"]
+                                    \Icon := iconError);
+        CASE SW_PROG_VALID_ERR:
+            answer := UIMessageBox (\Header:= "Weld program valid timeout"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, "IGNORE", stEmpty, "RETRY"]
+                                    \Icon := iconError);
+        CASE SW_WATER_SUP_ERR:
+            answer := UIMessageBox (\Header:= "Water supervision timeout"
+                                    \Message:= ErrText
+                                    \BtnArray := [stEmpty, stEmpty, stEmpty, stEmpty, "RETRY"]
+                                    \Icon := iconError);
+        DEFAULT:
+    ENDTEST
+
+    TEST answer
+        CASE 4:
+            Status := SW_SKIP;
+        CASE 5:
+            Status := SW_RETRY;
+        DEFAULT:
+    ENDTEST
+
+ ERROR
+    IF ERRNO = ERR_TP_NO_CLIENT THEN
+        SkipWarn;
+        TRYNEXT;
+    ENDIF
+
+ ENDPROC
+
+!----------------------------------------------------
+!  S U P E R V I S I O N  T A S K  R O U T I N E S
+!----------------------------------------------------
+
+ ! Called at SWSUP task poweron, perform all initializations needed here.
+ PROC SupervisionInit ()
+
+ ENDPROC
+
+ENDMODULE

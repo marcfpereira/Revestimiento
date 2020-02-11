@@ -1,0 +1,215 @@
+%%%
+  VERSION: 1
+  LANGUAGE: ENGLISH
+%%%
+
+MODULE SWUSRM (SYSMODULE, NOVIEW)
+
+!---------------------------------------
+! G L O B A L  D A T A
+!--------------------------------------- 
+
+ ! Description: 
+ ! CONST string Version_XXXXXXXX := "5.0.0";
+ !
+ !          XXXXXXXX - Module name
+ !                 1 - version number  (changed of SEROP) 
+ !                 2 - revision number (changed of SEROP)
+ !                 3 - revision number (changed of SEROP)
+ CONST string Version_SWUSRM := "6.04.0";
+
+!---------------------------------------------
+!  CUSTOMIZED MODULE FOR ONE WELD EQUIPMENT
+!---------------------------------------------
+
+ ! Default spotdata when creating a new SpotL/J instruction
+ PERS spotdata spot1 := [1, 1];
+
+ ! Default forcedata when creating a new SetForce instruction
+ PERS forcedata force1 := [1, 2];
+
+ ! Active gun index number when SpotL/J is used.
+ PERS gunnum gun1 := 1;
+
+!-------------------------------------------------------
+! U S E R  D A T A  D E F I N I T I O N  R O U T I N E S
+!-------------------------------------------------------
+
+  ! These routines can be used to perform actions inside the Spot routines.
+
+  ! Executed in the beginnning of all spot routines
+  PROC DefineUsrData(num GunNum \INOUT gundata UserGunData)
+
+    IF Present (UserGunData) THEN
+        curr_gundata{GunNum} := UserGunData;
+    ENDIF
+
+  ENDPROC
+
+  ! Executed at the end of all spot routines
+  PROC UpdateUsrData(num GunNum \INOUT gundata UserGunData)
+
+    IF Present (UserGunData) THEN
+        UserGunData := curr_gundata{GunNum};
+    ENDIF
+
+  ENDPROC
+
+!----------------------------------------------------
+! D A T A  D E F I N I T I O N  R O U T I N E S
+!----------------------------------------------------
+
+ ! These routines are used to transfer user defined data to internally used data.
+
+ ! Executed in the beginning of each Spot shell routine.
+ PROC DefineSpotData (spotdata Spot, num GunNum)
+
+    SwSetIntSpotData GunNum \ProgNo:=Spot.prog_no \TipForce:=Spot.tip_force;
+
+ ENDPROC
+
+ ! Executed in the beginning of each Spot shell routine.
+ PROC DefineGunData (\string GunName{*})
+
+    FOR i FROM 1 TO Dim(curr_gundata, 1) DO
+        SwSetIntGunData i \GunName:=curr_gundata{i}.gun_name;
+    ENDFOR
+
+ ENDPROC
+
+ ! Executed in the beginning of each SetForce instruction.
+ PROC DefineForceData (forcedata Force, num GunNum)
+
+    SwSetIntForceData GunNum \TipForce:=Force.tip_force
+                             \ForceTime:=Force.force_time;
+
+    curr_forcedata{GunNum} := Force;
+
+ ENDPROC
+
+ ! Executed in the beginning of each Spot shell routine.
+ PROC DefineSimData ()
+
+    SwSetIntSimData \SimType:=curr_simdata.sim_type
+                    \SimTime:=curr_simdata.sim_time
+                    \InhibGunClose:=curr_simdata.inhib_close;
+
+ ENDPROC
+
+!---------------------------------------
+! U P D A T E  S P O T  D A T A
+!---------------------------------------
+
+ ! Update current spotdata with latest used values from instuction.
+ ! Executed at the start of motion.
+ PROC UpdateSpotData (z_int_spotdata Spot, num GunNum)
+
+    curr_spotdata{GunNum}.prog_no :=    Spot.program_number;
+    curr_spotdata{GunNum}.tip_force :=  Spot.tip_force;
+
+ ENDPROC
+
+!------------------------------------------------------------------
+! M A N U A L  A C T I O N   U S E R  D I A L O G  R O U T I N E S
+!------------------------------------------------------------------
+
+  ! ManualSpot user dialog.
+  ! If the spot data type (spotdata) is changed and new parameters are added/removed or
+  ! renamed, the content of this routine must be changed accordingly.
+  ! Return value BtnAnswer with: 4 = Change - Change value on selected item
+  !                              5 = Back - Return to ManualSpot
+  PROC DefineManSpotData(num GunNum, INOUT num BtnAnswer, string RoutineInfo)
+
+    VAR listitem parameter_list{5};
+    VAR num selected_item;
+
+    parameter_list{1} := ["",SwTextGet(319)];
+    parameter_list{2} := ["","Program number   = " + ValToStr(curr_spotdata{GunNum}.prog_no) + " (123...)"];
+    parameter_list{3} := ["","Tip force        = " + ValToStr(curr_spotdata{GunNum}.tip_force) + " (N)"];
+
+    selected_item := UIListView (\Result := BtnAnswer
+                                 \Header := RoutineInfo,
+                                 parameter_list
+                                 \BtnArray := [stEmpty, stEmpty, stEmpty, SwTextGet(9), SwTextGet(272)]
+                                 \Icon := iconInfo
+                                 \DefaultIndex := 2);
+    IF BtnAnswer = 4 THEN
+        TEST selected_item
+        CASE 2:
+            SwGetWeldProgram GunNum, curr_spotdata{GunNum}.prog_no, RoutineInfo;
+        CASE 3:
+            SwGetSpotDataParam GunNum, curr_spotdata{GunNum}.tip_force, RoutineInfo \TipForce;
+        ENDTEST
+    ELSE
+        DefineSpotData curr_spotdata{GunNum}, GunNum;
+        RETURN;
+    ENDIF
+
+  ENDPROC
+
+  ! ManualSetForce and ManualGunControl user dialog.
+  ! If the spot data type (forcedata) is changed and new parameters are added/removed or
+  ! renamed, the content of this routine must be changed accordingly.
+  ! Return value BtnAnswer with: 4 = Change - Change value on selected item
+  !                              5 = Back - Return to ManualGunControl or ManualSetForce
+  PROC DefineManForceData(num GunNum, INOUT num BtnAnswer, string RoutineInfo \switch CloseGun)
+
+    VAR listitem parameter_list{5};
+    VAR num selected_item;
+    VAR string button4;
+    VAR string button5;
+
+    parameter_list{1} := ["",SwTextGet(320)];
+    parameter_list{2} := ["","Tip force        = " + ValToStr(curr_forcedata{GunNum}.tip_force) + " (N)"];
+    parameter_list{3} := ["","Force time       = " + ValToStr(curr_forcedata{GunNum}.force_time) + " (s)"];
+
+    selected_item := UIListView (\Result := BtnAnswer
+                                 \Header := RoutineInfo,
+                                 parameter_list
+                                 \BtnArray := [stEmpty, stEmpty, stEmpty, SwTextGet(9), SwTextGet(272)]
+                                 \Icon := iconInfo
+                                 \DefaultIndex := 2);
+    IF BtnAnswer = 4 THEN
+        TEST selected_item
+        CASE 2:
+            SwGetSpotDataParam GunNum, curr_forcedata{GunNum}.tip_force, RoutineInfo \TipForce;
+        CASE 3:
+            SwGetSpotDataParam GunNum, curr_forcedata{GunNum}.force_time, RoutineInfo \ForceTime;
+        ENDTEST
+    ELSE
+        DefineForceData curr_forcedata{GunNum}, GunNum;
+        RETURN;
+    ENDIF
+
+  ENDPROC
+
+!---------------------------------------
+!  E V E N T   R O U T I N E S
+!---------------------------------------
+
+  ! SwPowerOn: Called when the robot is restarted (warm start).
+  PROC SwPowerOn(num robno)
+  
+  ENDPROC
+  
+  ! SwStart: Called when execution is started from the beginning of the program.
+  PROC SwStart(num robno)
+  
+  ENDPROC
+  
+  ! SwRestart: Called when execution is started from the position where it was stopped.
+  PROC SwReStart(num robno)
+  
+  ENDPROC
+  
+  ! SwStop: Called when the program is stopped.
+  PROC SwStop(num robno)
+  
+  ENDPROC
+  
+  ! SwQStop: Called when the robot is quick stopped (E-stop).
+  PROC SwQStop(num robno)
+  
+  ENDPROC
+
+ENDMODULE

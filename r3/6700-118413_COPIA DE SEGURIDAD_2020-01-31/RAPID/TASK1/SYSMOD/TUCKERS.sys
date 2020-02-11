@@ -1,0 +1,38 @@
+MODULE TUCKERS(SYSMODULE)
+    
+    PROC SOLDADURA_TUCKERS_M1()
+        !
+        !Soldar Pernos Pequeños 
+        !
+        WaitDI di_no_Fault,1;
+        WaitGI Gi_Fault_Message,0;
+        WaitDi di_prev_maintenance_80,0;
+        WaitDI di_prev_maintenance_98,0;
+        !
+        SetDO DO_Start_weld_1,1;
+        WaitDi di_weld_complete_1,1;
+        WaitDI di_Cabezal_Atras_1,1;
+        Reset DO_Start_weld_1;
+        !
+        SetGO Go_prog_Pernos,0;
+        !
+    ENDPROC
+    
+    PROC SOLDADURA_TUCKERS_M2()
+        !
+        !Soldar Pernos Grandes 
+        !
+        WaitDI di_no_Fault,1;
+        WaitGI Gi_Fault_Message,0;
+        WaitDi di_prev_maintenance_80,0;
+        WaitDI di_prev_maintenance_98,0;
+        !
+        SetDO DO_Start_weld_2,1;
+        WaitDi di_weld_complete_2,1;
+        WaitDI di_Cabezal_Atras_2,1;
+        Reset DO_Start_weld_2;
+        !
+        SetGO Go_prog_Pernos,0;
+        !
+    ENDPROC
+ENDMODULE

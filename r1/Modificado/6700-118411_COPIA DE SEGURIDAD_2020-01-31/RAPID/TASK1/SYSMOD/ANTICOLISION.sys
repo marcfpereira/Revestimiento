@@ -1,0 +1,364 @@
+
+MODULE ANTICOLISION(SYSMODULE,NOSTEPIN)
+	! Anticolisión  control
+	! Revision: 1, 26/04/2013
+	!
+	  
+	! Aliases  
+	!
+	ALIAS num anticol;
+	ALIAS num ac_action;
+	LOCAL ALIAS num area_state;
+	!
+	! NOMBRE ROBOT (PERSONALIZAR) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	CONST string sRobName:="ROBOT 1";
+	
+	! VARIABLE PARA EVITAR BLOQUEOS ENTRE ROBOTS QUE OCUPAN EL MISMO AREA
+	PERS bool bMaster{28} := [FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE,
+	                         FALSE]; 
+
+	! Constantes identificación Anticolision
+	!
+	! Anticolisión con UTIL GENERICO 1
+	CONST anticol acUG1    := 1;
+	! Anticolisión con UTIL GENERICO 2
+	CONST anticol acUG2    := 2;
+	! Anticolisión 1 con ROBOT 1
+	CONST anticol acA1_R2  := 3;
+	! Anticolisión 2 con ROBOT 1
+	CONST anticol acA2_R2  := 4;
+	! Anticolisión 3 con ROBOT 1
+	CONST anticol acA3_R2  := 5;
+	! Anticolisión 4 con ROBOT 1
+	CONST anticol acA4_R2  := 6;
+	! Anticolisión 1 con ROBOT 2
+	CONST anticol acA5_R2  := 7;
+	! Anticolisión 2 con ROBOT 2
+	CONST anticol acA6_R2  := 8;
+	! Anticolisión 3 con ROBOT 2
+	CONST anticol acA7_R2  := 9;
+	! Anticolisión 4 con ROBOT 2
+	CONST anticol acA8_R2  := 10;
+	! Anticolisión 1 con ROBOT 3
+	CONST anticol acA1_R3  := 11;
+	! Anticolisión 2 con ROBOT 3
+	CONST anticol acA2_R3  := 12;
+	! Anticolisión 3 con ROBOT 3
+	CONST anticol acA3_R3  := 13;
+	! Anticolisión 4 con ROBOT 3
+	CONST anticol acA4_R3  := 14;
+	! Anticolisión 1 con ROBOT 4
+	CONST anticol acA5_R3  := 15;
+	! Anticolisión 2 con ROBOT 4
+	CONST anticol acA6_R3  := 16;
+	! Anticolisión 3 con ROBOT 4
+	CONST anticol acA7_R3  := 17;
+	! Anticolisión 4 con ROBOT 4
+	CONST anticol acA8_R3  := 18;
+	! Anticolisión 1 con ROBOT 5
+	CONST anticol acA1_R5  := 19;
+	! Anticolisión 2 con ROBOT 5
+	CONST anticol acA2_R5  := 20;
+	! Anticolisión 3 con ROBOT 5
+	CONST anticol acA3_R5  := 21;
+	! Anticolisión 4 con ROBOT 5
+	CONST anticol acA4_R5  := 22;
+	! Anticolisión 1 con ROBOT 6
+	CONST anticol acA1_R7  := 23;
+	! Anticolisión 2 con ROBOT 6
+	CONST anticol acA2_R7  := 24;
+	! Anticolisión 3 con ROBOT 6
+	CONST anticol acA3_R7  := 25;
+	! Anticolisión 4 con ROBOT 6
+	CONST anticol acA4_R7  := 26;
+	! Anticolisión Reserva 1
+	CONST anticol acRes1   := 27;
+	! Anticolisión Reserva 2
+	CONST anticol acRes2   := 28;
+
+	! Constantes de acción Anticolisión
+	!
+	CONST ac_action aaActivate   := 1;
+	CONST ac_action aaDeactivate := 2;
+
+	! Constantes de estado área
+	!
+	LOCAL CONST area_state asLocked := 0;
+	LOCAL CONST area_state asFree   := 1;
+	
+	! Textos de anticolisión
+	!
+	LOCAL CONST string sAnswer{28} :=["UTIL 1",
+																		"UTIL 2",
+																		"Antic1 con R2",
+																		"Antic2 con R2",
+																		"Antic3 con R2",
+																		"Antic4 con R2",
+																		"Antic5 con R2",
+																		"Antic6 con R2",
+																		"Antic7 con R2",
+																		"Antic8 con R2",
+																		"Antic1 con R3",
+																		"Antic2 con R3",
+																		"Antic3 con R3",
+																		"Antic4 con R3",
+																		"Antic5 con R3",
+																		"Antic6 con R3",
+																		"Antic7 con R3",
+																		"Antic8 con R3",
+																		"Antic1 con R5",
+																		"Antic2 con R5",
+																		"Antic3 con R5",
+																		"Antic4 con R5",
+																		"Antic1 con R7",
+																		"Antic2 con R7",
+																		"Antic3 con R7",
+																		"Antic4 con R7",
+																		" ",
+																		" "];
+
+	! Variables locales
+	!
+	LOCAL VAR signaldo doAnticol{28};
+	LOCAL VAR signaldi diAnticol{28};
+	
+	!
+	! Interconexión señales anticolisión
+
+	LOCAL PROC InitAntiColSignals()
+		! Asignación de salidas a matriz doAnticol
+		SignalConnect do_Mesa_Free, doAnticol{1};
+		SignalConnect do_Mesa_Free, doAnticol{2};
+		SignalConnect do_Antic1_R2, doAnticol{3};
+		SignalConnect do_Antic2_R2, doAnticol{4};
+		SignalConnect do_Antic3_R2, doAnticol{5};
+		SignalConnect do_Antic4_R2, doAnticol{6};
+		SignalConnect do_Antic5_R2, doAnticol{7};
+		SignalConnect do_Antic6_R2, doAnticol{8};
+		SignalConnect do_Antic7_R2, doAnticol{9};
+		SignalConnect do_Antic8_R2, doAnticol{10};
+		SignalConnect do_Antic1_R3, doAnticol{11};
+		SignalConnect do_Antic2_R3, doAnticol{12};
+		SignalConnect do_Antic3_R3, doAnticol{13};
+		SignalConnect do_Antic4_R3, doAnticol{14};
+		SignalConnect do_Antic5_R3, doAnticol{15};
+		SignalConnect do_Antic6_R3, doAnticol{16};
+		SignalConnect do_Antic7_R3, doAnticol{17};
+		SignalConnect do_Antic8_R3, doAnticol{18};
+		!SignalConnect do_Antic1_R5, doAnticol{19};
+		!SignalConnect do_Antic2_R5, doAnticol{20};
+		!SignalConnect do_Antic3_R5, doAnticol{21};
+		!SignalConnect do_Antic4_R5, doAnticol{22};
+		!SignalConnect do_Antic1_R7, doAnticol{23};
+		!SignalConnect do_Antic2_R7, doAnticol{24};
+		!SignalConnect do_Antic3_R7, doAnticol{25};
+		!SignalConnect do_Antic4_R7, doAnticol{26};
+		!SignalConnect do_AnticGen1, doAnticol{27};
+		!SignalConnect do_AnticGen2, doAnticol{28};
+		
+		! Asignación de entradas a matriz diAnticol
+		SignalConnect di_Util1, diAnticol{1};
+		SignalConnect di_Util2, diAnticol{2};
+		SignalConnect di_Antic1_R2, diAnticol{3};
+		SignalConnect di_Antic2_R2, diAnticol{4};
+		SignalConnect di_Antic3_R2, diAnticol{5};
+		SignalConnect di_Antic4_R2, diAnticol{6};
+		SignalConnect di_Antic5_R2, diAnticol{7};
+		SignalConnect di_Antic6_R2, diAnticol{8};
+		SignalConnect di_Antic7_R2, diAnticol{9};
+		SignalConnect di_Antic8_R2, diAnticol{10};
+		SignalConnect di_Antic1_R3, diAnticol{11};
+		SignalConnect di_Antic2_R3, diAnticol{12};
+		SignalConnect di_Antic3_R3, diAnticol{13};
+		SignalConnect di_Antic4_R3, diAnticol{14};
+		SignalConnect di_Antic5_R3, diAnticol{15};
+		SignalConnect di_Antic6_R3, diAnticol{16};
+		SignalConnect di_Antic7_R3, diAnticol{17};
+		SignalConnect di_Antic8_R3, diAnticol{18};
+		!SignalConnect di_Antic1_R5, diAnticol{19};
+		!SignalConnect di_Antic2_R5, diAnticol{20};
+		!SignalConnect di_Antic3_R5, diAnticol{21};
+		!SignalConnect di_Antic4_R5, diAnticol{22};
+		!SignalConnect di_Antic1_R7, diAnticol{23};
+		!SignalConnect di_Antic2_R7, diAnticol{24};
+		!SignalConnect di_Antic3_R7, diAnticol{25};
+		!SignalConnect di_Antic4_R7, diAnticol{26};
+		!SignalConnect di_AnticGen1, diAnticol{27};
+		!SignalConnect di_AnticGen2, diAnticol{28};
+		!
+	ENDPROC
+
+	! Procedimiento gestión anticolisiones
+	PROC rAnticol(anticol aAnticol, ac_action aAction \ Switch Master)
+		VAR bool bFlag;
+		VAR bool bWaiting := FALSE;
+		! 		           		          
+		! Inicialización señales de anticolisión
+		InitAnticolSignals;
+		!
+		IF Present (Master) THEN
+			bMaster{aAnticol}:=TRUE;
+		ELSE 	
+			bMaster{aAnticol}:=FALSE;
+		ENDIF
+		!
+		! Gestión anticolisiones	
+		TEST aAction
+			CASE aaActivate:
+				!
+				IF (DOutput(doAnticol{aAnticol})= asFree) THEN
+					!
+					! Comprobación área libre
+					!
+					! Libera área anticolisión
+					Set doAnticol{aAnticol};
+					!
+					! Espera diInput = 1. Indica área libre que puede ser ocupada
+					WaitUntil diAnticol{aAnticol} = asFree\MaxTime:=1\TimeFlag:=bFlag;
+					WHILE (bFlag = TRUE) DO      	 
+						rTxAlarm "Espera anticolisión " + sRobName + " " + sAnswer{aAnticol};
+						bWaiting := TRUE;
+						WaitUntil diAnticol{aAnticol} = asFree\MaxTime:=1\TimeFlag:=bFlag;
+					ENDWHILE
+					EraseTP(bWaiting);
+					bWaiting := FALSE;
+					!     
+					! Área ocupada y lista para bloquear
+					!
+					! Reset doOutput para ocupar y bloquear área
+					Reset doAnticol{aAnticol};
+					!
+					IF bMaster{aAnticol}=FALSE THEN
+						WaitTime 0.1;
+						WaitUntil diAnticol{aAnticol} = asFree\MaxTime:=1\TimeFlag:=bFlag;
+						WHILE (bFlag = TRUE) DO      	 
+							rTxAlarm "Espera área libre " + sRobName + " " + sAnswer{aAnticol};
+							bWaiting := TRUE;
+							WaitUntil diAnticol{aAnticol} = asFree\MaxTime:=1\TimeFlag:=bFlag;
+						ENDWHILE
+						EraseTP(bWaiting);
+						bWaiting := FALSE;
+					ENDIF
+				ENDIF
+				!
+			CASE aaDeactivate:
+				! Set doOutput para liberar área
+				Set doAnticol{aAnticol};				
+			DEFAULT:
+				WHILE TRUE DO
+					Stop;
+					TPErase;
+				ENDWHILE
+		ENDTEST
+	ENDPROC
+	
+	! Procedimiento para control de anticolisiones 
+	PROC rAnticolCheck()
+		VAR num i;
+		VAR bool bStopped := FALSE;
+		!
+		! Init Anticolisión  signals	          
+		InitAnticolSignals;	          
+		!
+		FOR i FROM acUG1 TO acRes2 DO   	
+			! Si la anticolisión está activa..
+			IF DOutput(doAnticol{i}) = asLocked THEN
+				IF bMaster{i}=FALSE THEN
+					! Comprueba si el área está todavía libre
+					!WHILE (diAnticol{i} = asLocked) AND (DOutput(doAnticol{i}) = asLocked) AND (DOutput(do_AutoOn) = 1)DO
+					WHILE (diAnticol{i} = asLocked) AND (DOutput(doAnticol{i}) = asLocked) DO
+						! Si el área no está libre -> StopMove y espera área libre para reiniciar movimiento
+						rTxAlarm "Esperando área libre" + sRobName + " " + sAnswer{i};			
+						!
+						! Robot MASTER no se detiene si entran dos robots al mismo tiempo en el mismo área
+						IF (bStopped = FALSE) StopMove\Quick;
+						bStopped := TRUE;
+						WaitTime 0.05;
+					ENDWHILE
+				ENDIF
+				!
+				! If we write alarm text on TP, erase it
+				IF bStopped OR (DOutput(do_AutoOn) = 0)THEN
+					StartMove;		
+				ENDIF
+				EraseTP(bStopped);
+				bStopped := FALSE;
+			ENDIF
+		ENDFOR      	    	
+	ENDPROC
+	
+	! Procedure to set all Anticolisión s
+	PROC rSetAllAnticol()
+		VAR num i;
+		FOR i FROM acUG1 TO acRes2 DO   	
+		rAntiCol i, aaActivate;
+		ENDFOR      	  
+	ENDPROC
+	
+	! Procedure to reset all Anticolisión s
+	PROC rResetAllAnticol()    
+		VAR num i;  
+		FOR i FROM acUG1 TO acRes2 DO   	
+		rAntiCol i, aaDeactivate;
+		ENDFOR
+	ENDPROC
+	
+	PROC cmCenterTPLine(string sText)
+		VAR string sBlanks;
+		VAR num pos;
+		VAR num i;
+		!
+		IF (StrLen(sText) < 40) THEN
+		pos := (40 - (StrLen(sText))) DIV 2;
+		pos := Round(pos);
+		FOR i FROM 1 TO pos DO
+		sBlanks := sBlanks + " ";
+		ENDFOR
+		ENDIF
+		!
+		sText := sBlanks + sText;
+		TPWrite sText;
+	ENDPROC
+
+	PROC rTxAlarm(string sText)
+		TPErase;
+		cmCenterTPLine "*** ALARM ***";
+		cmCenterTPLine "::::::::::::::::::::::::::::::::::::::::";
+		cmCenterTPLine sText;
+		cmCenterTPLine "::::::::::::::::::::::::::::::::::::::::";
+	ENDPROC
+  
+  ! Rutina para borrar texto del TP si la condición se cumple
+	PROC EraseTP(bool bCondition)
+		IF bCondition THEN
+			TPErase;
+		ENDIF
+	ENDPROC
+ENDMODULE
+

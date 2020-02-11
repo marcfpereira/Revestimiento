@@ -1,0 +1,156 @@
+MODULE M_EOCycles (SYSMODULE,NOSTEPIN)
+    
+    PROC End_of_cycle()
+		!=========================
+		! End of cycle hand shake
+		!=========================
+		WaitDI di_EOCycle, 0\MaxTime:=3;
+		Set do_EOCycle;
+		WaitDI di_EOCycle, 1\MaxTime:=3;
+		Reset do_EOCycle;
+		ERROR
+		IF ERRNO=ERR_WAIT_MAXTIME THEN
+			!
+			IF DOutput(do_EOCycle)=0 THEN
+				WHILE di_EOCycle<>0 DO
+					UIMsgBox\Header:="Fin de ciclo R3", " Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+				ENDWHILE
+				RETRY;
+			ENDIF
+			!
+			IF DOutput(do_EOCycle)=1 THEN
+				UIMsgBox\Header:="Fin de ciclo R3", " Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+				RETRY;
+			ENDIF
+			!
+			RETURN;
+		ENDIF
+		!
+		!=============
+		!EXIT PROGRAM
+		!=============
+	ENDPROC
+    
+    PROC End_of_cycle2()
+		!=========================
+		! End of cycle hand shake
+		!=========================
+		!WaitDI di_EOCycle2, 0\MaxTime:=3;
+		!Set do_EOCycle2;
+		!WaitDI di_EOCycle2, 1\MaxTime:=3;
+		!Reset do_EOCycle2;
+		!ERROR
+		!IF ERRNO=ERR_WAIT_MAXTIME THEN
+			!
+			!IF DOutput(do_EOCycle2)=0 THEN
+				!WHILE di_EOCycle2<>0 DO
+				!	UIMsgBox\Header:="Fin de ciclo R3", " Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+				!ENDWHILE
+				!RETRY;
+			!ENDIF
+			!
+			!IF DOutput(do_EOCycle2)=1 THEN
+			!	UIMsgBox\Header:="Fin de ciclo R3", " Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle2\BreakFlag:=err_var_s5;
+			!	RETRY;
+			!ENDIF
+			!
+		!ENDIF
+		!
+		!=============
+		!EXIT PROGRAM
+		!=============
+	ENDPROC
+    
+    PROC End_of_cycle3()
+		!=========================
+		! End of cycle hand shake
+		!=========================
+		WaitDI di_EOCycle3, 0\MaxTime:=3;
+		Set do_EOCycle3;
+		WaitDI di_EOCycle3, 1\MaxTime:=3;
+		Reset do_EOCycle3;
+		ERROR
+		IF ERRNO=ERR_WAIT_MAXTIME THEN
+			!
+			IF DOutput(do_EOCycle3)=0 THEN
+				WHILE di_EOCycle3<>0 DO
+					UIMsgBox\Header:="Fin de ciclo R3", " Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+				ENDWHILE
+				RETRY;
+			ENDIF
+			!
+			IF DOutput(do_EOCycle3)=1 THEN
+				UIMsgBox\Header:="Fin de ciclo R3", " Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle3\BreakFlag:=err_var_s5;
+				RETRY;
+			ENDIF
+			!
+		ENDIF
+		!
+		!=============
+		!EXIT PROGRAM
+		!=============
+	ENDPROC
+
+	PROC End_of_Mant()
+		!=========================
+		! End of cycle hand shake
+		!=========================
+		!WaitDI di_EOCycle, 0\MaxTime:=1;
+		Set do_Fin_Mant;
+		WaitDI di_EOCycle,1\MaxTime:=1;
+		Reset do_Fin_Mant;
+		WaitDI di_EOCycle,0\MaxTime:=1;
+		ERROR
+		IF ERRNO=ERR_WAIT_MAXTIME THEN
+			!
+			IF DOutput(do_Fin_Mant) = 0 THEN
+				WHILE di_EOCycle <> 0 DO
+					UIMsgBox\Header:="Fin de ciclo de Mantenimiento", " Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+				ENDWHILE
+				RETRY;
+			ENDIF
+			!
+			IF DOutput(do_Fin_Mant) = 1 THEN
+				UIMsgBox\Header:="Fin de ciclo de Mantenimiento", " Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+				RETRY;
+			ENDIF
+			!
+		ENDIF
+		!
+		!=============
+		!EXIT PROGRAM
+		!=============
+	ENDPROC
+
+
+	PROC End_of_Mart()
+		!=========================
+		! End of cycle hand shake
+		!=========================
+		WaitDI di_EOCycle, 0\MaxTime:=1;
+		Set do_Fin_Martilleo;
+		WaitDI di_EOCycle,1\MaxTime:=1;
+		Reset do_Fin_Martilleo;
+		ERROR
+		IF ERRNO=ERR_WAIT_MAXTIME THEN
+			!
+			IF DOutput(do_Fin_Martilleo) = 0 THEN
+				WHILE di_EOCycle <> 0 DO
+					UIMsgBox\Header:="Fin de ciclo de Martilleo", " Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+				ENDWHILE
+				RETRY;
+			ENDIF
+			!
+			IF DOutput(do_Fin_Martilleo) = 1 THEN
+				UIMsgBox\Header:="Fin de ciclo de Martilleo", " Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+				RETRY;
+			ENDIF
+			!
+		ENDIF
+		!
+		!=============
+		!EXIT PROGRAM
+		!=============
+	ENDPROC
+	    
+ENDMODULE

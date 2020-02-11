@@ -1,0 +1,314 @@
+%%%
+  VERSION: 1
+  LANGUAGE: ENGLISH
+%%%
+
+MODULE SWUSRM (SYSMODULE, NOVIEW)
+
+!---------------------------------------
+! G L O B A L  D A T A
+!--------------------------------------- 
+
+  ! Description: 
+  ! CONST string Version_XXXXXXXX := "1.2.3";
+  !
+  !          XXXXXXXX - Module name
+  !                 1 - version number  (changed of SEROP) 
+  !                 2 - revision number (changed of SEROP)
+  !                 3 - revision number (changed of SEROP)
+ CONST string Version_SWUSRM := "6.0.0";
+
+!---------------------------------------------
+!  CUSTOMIZED MODULE FOR ONE WELD EQUIPMENT
+!---------------------------------------------
+
+  ! Default spotdata when creating a new SpotL/J instruction
+  PERS spotdata spot1 := [1, 1000, 0, 0];
+
+  ! Default forcedata when creating a new SetForce instruction
+  PERS forcedata force1 := [1000, 1, 0, 0];
+
+  ! Active gun index number when SpotL/J is used.
+  PERS gunnum gun1 := 1;
+
+!-------------------------------------------------------
+! U S E R  D A T A  D E F I N I T I O N  R O U T I N E S
+!-------------------------------------------------------
+
+  ! These routines can be used to perform actions inside the Spot routines.
+
+  ! Executed in the beginnning of all spot routines
+  PROC DefineUsrData(num GunNum \INOUT gundata UserGunData)
+
+    IF Present (UserGunData) THEN
+        curr_gundata{GunNum} := UserGunData;
+    ENDIF
+
+  ENDPROC
+
+  ! Executed at the end of all spot routines
+  PROC UpdateUsrData(num GunNum \INOUT gundata UserGunData)
+
+    IF Present (UserGunData) THEN
+        UserGunData := curr_gundata{GunNum};
+    ENDIF
+
+  ENDPROC
+
+!----------------------------------------------------
+! D A T A  D E F I N I T I O N  R O U T I N E S
+!----------------------------------------------------
+
+  ! These routines are used to transfer user defined data to internally used data.
+
+  ! Executed in the beginning of each Spot shell routine.
+  PROC DefineSpotData (spotdata Spot, num GunNum)
+
+    SwSetIntSpotData GunNum \ProgNo:=Spot.prog_no \TipForce:=Spot.tip_force
+                            \PlateThickness:=Spot.plate_thickness
+                            \PlateTolerance:=Spot.plate_tolerance;
+
+  ENDPROC
+
+  ! Executed in the beginning of each Spot shell routine.
+  ! The optional string array GunName is used if ManualGunSearch is run.
+  PROC DefineGunData (\string GunName{*})
+
+    IF Present (GunName) THEN
+        FOR i FROM 1 TO Dim(curr_gundata, 1) DO
+            curr_gundata{i}.gun_name := GunName{i};
+        ENDFOR
+    ENDIF
+
+    FOR i FROM 1 TO Dim(curr_gundata, 1) DO
+        SwSetIntGunData i \GunName:=curr_gundata{i}.gun_name
+                          \CurrWearFix:=curr_gundata{i}.curr_wear_fix
+                          \CurrWearMov:=curr_gundata{i}.curr_wear_mov
+                          \TotalTipWear:=curr_gundata{i}.curr_tip_wear
+                          \MaxTipWear:=curr_gundata{i}.max_tip_wear
+                          \ReleaseDist:=curr_gundata{i}.release_dist
+                          \DeflectionDistZ:=curr_gundata{i}.deflection_dist_z
+                          \DeflectionDistX:=curr_gundata{i}.deflection_dist_x
+                          \DeflectionForce:=curr_gundata{i}.deflection_force
+                          \DeflectionTime:=curr_gundata{i}.deflection_time;
+    ENDFOR
+
+  ENDPROC
+
+  ! Executed in the beginning of each SetForce instruction.
+  PROC DefineForceData (forcedata Force, num GunNum)
+
+    SwSetIntForceData GunNum \TipForce:=Force.tip_force
+                             \ForceTime:=Force.force_time
+                             \PlateThickness:=Force.plate_thickness
+                             \PlateTolerance:=Force.plate_tolerance;
+
+    curr_forcedata{GunNum} := Force;
+
+  ENDPROC
+
+  ! Executed in the beginning of each Spot shell routine.
+  PROC DefineSimData ()
+
+    SwSetIntSimData \SimType:=curr_simdata.sim_type
+                    \SimTime:=curr_simdata.sim_time
+                    \InhibGunClose:=curr_simdata.inhib_close
+                    \PlatesCheck:=curr_simdata.no_plates;
+
+  ENDPROC
+
+!---------------------------------------
+! U P D A T E   S P O T   D A T A
+!---------------------------------------
+
+ ! Update current spotdata with latest used values from instuction 
+ ! or from timer I/O's, force, thickness, tolerance (if configured)
+ ! Executed at the start of motion.
+ PROC UpdateSpotData (z_int_spotdata Spot, num GunNum)
+
+    curr_spotdata{GunNum}.prog_no :=            Spot.program_number;
+    curr_spotdata{GunNum}.tip_force :=          Spot.tip_force;
+    curr_spotdata{GunNum}.plate_thickness :=    Spot.plate_thickness;
+    curr_spotdata{GunNum}.plate_tolerance :=    Spot.plate_tolerance;
+
+ ENDPROC
+
+!------------------------------------------------------
+! U P D A T E  C A L I B  D A T A   R O U T I N E S
+!------------------------------------------------------
+
+  ! Update tip wear data in gundata.
+  ! Executed at the end of each CalibL/J and Calibrate instruction.
+  ! Total tip wear and moveable tip wear data will be updated here.
+  PROC UpdateCalibData (num TotalTipWear,
+                        num WearMoveable,
+                        num GunNum
+                        \switch ToolChg | switch TipChg | switch TipWear | switch FineCalib)
+
+    ! Update total tip wear in gundata
+    curr_gundata{GunNum}.curr_tip_wear := TotalTipWear;
+
+    IF Present(ToolChg) THEN
+        ! Called after calibration after a change of the gun
+        curr_gundata{GunNum}.curr_wear_mov := WearMoveable;
+
+    ELSEIF Present(FineCalib) THEN
+        ! Called after fine calibration of the gun (ManServiceCalib)
+        curr_gundata{GunNum}.curr_wear_mov := TotalTipWear;
+
+    ELSEIF Present(TipChg) THEN
+        ! Called after calibration after a tip change
+        curr_gundata{GunNum}.curr_wear_mov := 0;
+
+    ELSEIF Present(TipWear) THEN
+        ! Called after a tip wear measurement
+        curr_gundata{GunNum}.curr_wear_mov := WearMoveable;
+
+    ENDIF
+
+  ENDPROC
+
+  ! Update tip wear data in gundata.
+  ! Executed from the MeasureWearL and the ReCalcTcp instruction.
+  ! Fixed tip wear data will be updated here.
+  PROC UpdateFixTipData(num CurrWearFixed,
+                        num DiffDistance,
+                        num GunNum
+                        \switch Reference |switch TipChange |switch TipWear |switch RefChange)
+
+    IF Present(Reference) THEN
+        ! Called after reference measurement in MeasureWearL and from ReCalcTcp
+        curr_gundata{GunNum}.curr_wear_fix := 0;
+
+    ELSEIF Present(RefChange) THEN
+        ! Called from MeasureWearL after a new reference measurement when reference surface is moved
+        curr_gundata{GunNum}.curr_wear_fix := CurrWearFixed;
+
+    ELSEIF Present(TipChange) THEN
+        ! Called after each tip change measurement in MeasureWearL and ReCalcTcp
+        curr_gundata{GunNum}.curr_wear_fix := 0;
+
+    ELSEIF Present(TipWear) THEN
+        ! Called after each tip wear measurement in MeasureWearL and ReCalcTcp
+        curr_gundata{GunNum}.curr_wear_fix := CurrWearFixed;
+
+    ENDIF
+
+  ENDPROC
+
+!------------------------------------------------------------------
+! M A N U A L  A C T I O N   U S E R  D I A L O G  R O U T I N E S
+!------------------------------------------------------------------
+
+  ! ManualSpot user dialog.
+  ! If the spot data type (spotdata) is changed and new parameters are added/removed or
+  ! renamed, the content of this routine must be changed accordingly.
+  ! Return value BtnAnswer with: 4 = Change - Change value on selected item
+  !                              5 = Back - Return to ManualSpot
+  PROC DefineManSpotData(num GunNum, INOUT num BtnAnswer, string RoutineInfo)
+
+    VAR listitem parameter_list{5};
+    VAR num selected_item;
+
+    parameter_list{1} := ["",SwTextGet(319)];
+    parameter_list{2} := ["","Program number   = " + ValToStr(curr_spotdata{GunNum}.prog_no) + " (123...)"];
+    parameter_list{3} := ["","Tip force        = " + ValToStr(curr_spotdata{GunNum}.tip_force) + " (N)"];
+    parameter_list{4} := ["","Plate thickness  = " + ValToStr(curr_spotdata{GunNum}.plate_thickness) + " (mm)"];
+    parameter_list{5} := ["","Plate tolerance  = " + ValToStr(curr_spotdata{GunNum}.plate_tolerance) + " (mm)"];
+
+    selected_item := UIListView (\Result := BtnAnswer
+                                 \Header := RoutineInfo,
+                                 parameter_list
+                                 \BtnArray := [stEmpty, stEmpty, stEmpty, SwTextGet(9), SwTextGet(272)]
+                                 \Icon := iconInfo
+                                 \DefaultIndex := 2);
+    IF BtnAnswer = 4 THEN
+        TEST selected_item
+        CASE 2:
+            SwGetWeldProgram GunNum, curr_spotdata{GunNum}.prog_no, RoutineInfo;
+        CASE 3:
+            SwGetSpotDataParam GunNum, curr_spotdata{GunNum}.tip_force, RoutineInfo \TipForce;
+        CASE 4:
+            SwGetSpotDataParam GunNum, curr_spotdata{GunNum}.plate_thickness, RoutineInfo \PlateThickness;
+        CASE 5:
+            SwGetSpotDataParam GunNum, curr_spotdata{GunNum}.plate_tolerance, RoutineInfo \PlateTolerance;
+        ENDTEST
+    ELSE
+        DefineSpotData curr_spotdata{GunNum}, GunNum;
+        RETURN;
+    ENDIF
+
+  ENDPROC
+
+  ! ManualSetForce and ManualGunControl user dialog.
+  ! If the spot data type (forcedata) is changed and new parameters are added/removed or
+  ! renamed, the content of this routine must be changed accordingly.
+  ! Return value BtnAnswer with: 4 = Change - Change value on selected item
+  !                              5 = Back - Return to ManualGunControl or ManualSetForce
+  PROC DefineManForceData(num GunNum, INOUT num BtnAnswer, string RoutineInfo \switch CloseGun)
+
+    VAR listitem parameter_list{5};
+    VAR num selected_item;
+    VAR string button4;
+    VAR string button5;
+
+    parameter_list{1} := ["",SwTextGet(320)];
+    parameter_list{2} := ["","Tip force        = " + ValToStr(curr_forcedata{GunNum}.tip_force) + " (N)"];
+    parameter_list{3} := ["","Plate thickness  = " + ValToStr(curr_forcedata{GunNum}.plate_thickness) + " (mm)"];
+    parameter_list{4} := ["","Plate tolerance  = " + ValToStr(curr_forcedata{GunNum}.plate_tolerance) + " (mm)"];
+    parameter_list{5} := ["","Force time       = " + ValToStr(curr_forcedata{GunNum}.force_time) + " (s)"];
+
+    selected_item := UIListView (\Result := BtnAnswer
+                                 \Header := RoutineInfo,
+                                 parameter_list
+                                 \BtnArray := [stEmpty, stEmpty, stEmpty, SwTextGet(9), SwTextGet(272)]
+                                 \Icon := iconInfo
+                                 \DefaultIndex := 2);
+    IF BtnAnswer = 4 THEN
+        TEST selected_item
+        CASE 2:
+            SwGetSpotDataParam GunNum, curr_forcedata{GunNum}.tip_force, RoutineInfo \TipForce;
+        CASE 3:
+            SwGetSpotDataParam GunNum, curr_forcedata{GunNum}.plate_thickness, RoutineInfo \PlateThickness;
+        CASE 4:
+            SwGetSpotDataParam GunNum, curr_forcedata{GunNum}.plate_tolerance, RoutineInfo \PlateTolerance;
+        CASE 5:
+            SwGetSpotDataParam GunNum, curr_forcedata{GunNum}.force_time, RoutineInfo \ForceTime;
+        ENDTEST
+    ELSE
+        DefineForceData curr_forcedata{GunNum}, GunNum;
+        RETURN;
+    ENDIF
+
+  ENDPROC
+
+!---------------------------------------
+!  E V E N T   R O U T I N E S
+!---------------------------------------
+
+  ! SwPowerOn: Called when the robot is restarted (warm start).
+  PROC SwPowerOn(num robno)
+  
+  ENDPROC
+  
+  ! SwStart: Called when execution is started from the beginning of the program.
+  PROC SwStart(num robno)
+  
+  ENDPROC
+  
+  ! SwRestart: Called when execution is started from the position where it was stopped.
+  PROC SwReStart(num robno)
+  
+  ENDPROC
+  
+  ! SwStop: Called when the program is stopped.
+  PROC SwStop(num robno)
+  
+  ENDPROC
+  
+  ! SwQStop: Called when the robot is quick stopped (E-stop).
+  PROC SwQStop(num robno)
+  
+  ENDPROC
+
+ENDMODULE

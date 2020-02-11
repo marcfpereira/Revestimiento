@@ -1,0 +1,296 @@
+MODULE DISPLAY(sysmodule)
+    VAR num Superv_Mov:=0;
+    !
+    !
+    ! Routines:
+    ! set_home: do_Home_R1 output control
+    ! check_home_pos: check robot home position
+    ! Wait_cycle_start: waiting cycle start
+    ! Wait_input: waiting input
+    ! End_of_cycle: end of cycle hand shake
+    ! Application_fault: application fault
+    !  
+
+    PROC set_home()
+        !==========================
+        ! do_Home_R1 output control
+        ! set up at Power On
+        !==========================
+        !
+        jpos_Home_old1:=home_pos_rob;
+        WZHomeJointDef\Inside,joint_space,home_pos_rob,delta_pos;
+        WZDOSet\Stat,wz_home\Inside,joint_space,do_Home_R1,1;
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+
+    PROC Check_homepos()
+    ! Comprobacion: ROBOT REPOSO
+  	! Almacenar posicon actual
+    jposActual_rob:=CJointT();
+    ! Obtencion valor confirmacion ROBOT REPOSO
+    ! EJES: Axis1 - Axis2
+    nDif_pos1:=Abs(jpos_Reposo_R.robax.rax_1-jposActual_rob.robax.rax_1)+Abs(jpos_Reposo_R.robax.rax_2-jposActual_rob.robax.rax_2);
+    ! EJES: Axis3 - Axis4
+    nDif_pos2:=Abs(jpos_Reposo_R.robax.rax_3-jposActual_rob.robax.rax_3)+Abs(jpos_Reposo_R.robax.rax_4-jposActual_rob.robax.rax_4);
+    ! EJES: Axis5 - Axis6
+    nDif_pos3:=Abs(jpos_Reposo_R.robax.rax_5-jposActual_rob.robax.rax_5)+Abs(jpos_Reposo_R.robax.rax_6-jposActual_rob.robax.rax_6);
+    nDif_pos:=nDif_pos1+nDif_pos2+nDif_pos3;
+    ! Analisis: ROBOT EN POSICION REPOSO
+    !IF Abs(nDif_pos)<1 THEN
+    	!b_reposo_robot:=TRUE;
+    IF do_Home_R1=1 THEN 
+    	b_reposo_robot:=TRUE;        
+    ELSE
+      TPErase;
+      TPReadFK nteclas, "ROBOT FUERA DE REPOSO             IR A REPOSO AUTOMATICAMENTE ?", "", "SI", "", "NO", "";
+      TEST nteclas
+      	CASE 2:
+      		! MOVIMIENTO AUTOMATICO
+        	VelSet 100,100;
+          home_robot;
+          b_reposo_robot:=TRUE;
+          VelSet 100,6000;
+        CASE 4:
+        	! MOVIMIENTO MANUAL
+          TPErase;
+          TPWrite " ";
+          TPWrite "                            ";
+          TPWrite " LLEVAR EL ROBOT A POSICION "; 
+          TPWrite "   DE REPOSO MANUALMENTE    ";
+          TPWrite "                            ";
+          TPWrite "  EJECUTAR EN MODO MANUAL   ";
+          TPWrite "    TRAY.: reposo_robot     ";
+          TPWrite "                            ";
+          TPWrite " ";
+          WaitTime 5;
+          Check_homepos;
+      ENDTEST
+    ENDIF
+	ENDPROC
+    
+
+    PROC Wait_cycle_start()
+        !=====================
+        ! Waiting cycle start
+        !=====================
+        !
+        ClkStop ck_Tiempo_ciclo;
+        tiempo_ciclo_s5:=ValToStr(ClkRead(ck_Tiempo_ciclo));
+        Check_homepos;
+        TPErase;
+        WHILE DInput(di_CycleStart)=low DO
+            UIMsgBox\Header:="Arranque ciclo R1","ROBOT EN HOME"\MsgLine2:=""\MsgLine3:="ESPERA ARRANQUE DE CICLO"\Buttons:=btnOk\Icon:=iconInfo\DIBreak:=di_CycleStart\BreakFlag:=err_var_s5;
+            UIMsgBox\Header:="Tiempo de ciclo R1"," Ultimo tiempo de ciclo (sg)= "\MsgLine2:=tiempo_ciclo_s5\MsgLine3:="sg"\Wrap\Buttons:=btnOk\Icon:=iconInfo\DIBreak:=di_CycleStart\BreakFlag:=err_var_s5;
+            IF DOutput(do_Home_R1)=0 Check_homepos;
+        ENDWHILE
+        ClkReset ck_Tiempo_ciclo;
+        Reset do_EOCycle;
+        ClkStart ck_Tiempo_ciclo;
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+
+    PROC Wait_input(VAR signaldi Input,num State\string Message)
+        !
+        ! Waiting input
+        IF Input<>State THEN
+            IF NOT Present(Message)Message:=" ";
+            IF State=0 THEN
+                WHILE Input<>State DO
+                    UIMsgBox\Header:="Info. Entradas R1"," Esperando "\MsgLine2:=Message\MsgLine3:="a 0"\Wrap\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=0.5\BreakFlag:=err_var_s5;
+                ENDWHILE
+            ELSE
+                UIMsgBox\Header:="Info. Entradas R1"," Esperando "\MsgLine2:=Message\MsgLine3:="a 1"\Wrap\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=Input\BreakFlag:=err_var_s5;
+            ENDIF
+            WaitDI Input,State;
+        ENDIF
+        !
+        !=============
+        !EXIT PROGRAM
+        !============= 
+    ENDPROC
+
+    PROC End_of_cycle()
+        !=========================
+        ! End of cycle hand shake
+        !=========================
+        WaitDI di_EOCycle,0\MaxTime:=1;
+        Set do_EOCycle;
+        WaitDI di_EOCycle,1\MaxTime:=1;
+        Reset do_EOCycle;
+        WaitDI di_EOCycle,0\MaxTime:=1;
+        !
+    ERROR
+        IF ERRNO=ERR_WAIT_MAXTIME THEN
+            !
+            IF DOutput(do_EOCycle)=0 THEN
+                WHILE di_EOCycle<>0 DO
+                    UIMsgBox\Header:="Fin de ciclo R1"," Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+                ENDWHILE
+                RETRY;
+            ENDIF
+            !
+            IF DOutput(do_EOCycle)=1 THEN
+                UIMsgBox\Header:="Fin de ciclo R1"," Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+                RETRY;
+            ENDIF
+            !
+        ENDIF
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+    
+    PROC End_of_Mant()
+        !=========================
+        ! End of cycle hand shake
+        !=========================
+        WaitDI di_EOCycle,0\MaxTime:=1;
+        Set do_Fin_Mant;
+        WaitDI di_EOCycle,1\MaxTime:=1;
+        Reset do_Fin_Mant;
+        !
+    ERROR
+        IF ERRNO=ERR_WAIT_MAXTIME THEN
+            !
+            IF DOutput(do_Fin_Mant)=0 THEN
+                WHILE di_EOCycle<>0 DO
+                    UIMsgBox\Header:="Fin de ciclo de Mantenimiento"," Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+                ENDWHILE
+                RETRY;
+            ENDIF
+            !
+            IF DOutput(do_Fin_Mant)=1 THEN
+                UIMsgBox\Header:="Fin de ciclo de Mantenimiento"," Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+                RETRY;
+            ENDIF
+            !
+        ENDIF
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+
+    PROC End_of_Fresado()
+        !=========================
+        ! End of cycle hand shake
+        !=========================
+        WaitDI di_EOCycle,0\MaxTime:=1;
+        !Set do_Fresado;
+        WaitDI di_EOCycle,1\MaxTime:=1;
+        !Reset do_Fresado;
+        !WaitDI di_EOCycle,0\MaxTime:=1;
+    ERROR
+        IF ERRNO=ERR_WAIT_MAXTIME THEN
+            !
+            !IF DOutput(do_Fresado)=0 THEN
+                !WHILE di_EOCycle<>0 DO
+                    !UIMsgBox\Header:="Fin de ciclo de Fresado"," Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+                !ENDWHILE
+                !RETRY;
+            !ENDIF
+            !
+            !IF DOutput(do_Fresado)=1 THEN
+                !UIMsgBox\Header:="Fin de ciclo de Fresado"," Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+                !RETRY;
+            !ENDIF
+            !
+        ENDIF
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+
+    PROC End_of_CCaps()
+        !=========================
+        ! End of cycle hand shake
+        !=========================
+        WaitDI di_EOCycle,0\MaxTime:=1;
+        Set do_Cambio_caps;
+        WaitDI di_EOCycle,1\MaxTime:=1;
+        Reset do_Cambio_caps;
+        !
+    ERROR
+        IF ERRNO=ERR_WAIT_MAXTIME THEN
+            !
+            IF DOutput(do_Cambio_caps)=0 THEN
+                WHILE di_EOCycle<>0 DO
+                    UIMsgBox\Header:="Fin de ciclo de Cambio Caps"," Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+                ENDWHILE
+                RETRY;
+            ENDIF
+            !
+            IF DOutput(do_Cambio_caps)=1 THEN
+                UIMsgBox\Header:="Fin de ciclo de Cambio Caps"," Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+                RETRY;
+            ENDIF
+            !
+        ENDIF
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+
+    PROC End_of_Mart()
+        !=========================
+        ! End of cycle hand shake
+        !=========================
+        WaitDI di_EOCycle,0\MaxTime:=1;
+        Set do_Fin_Martilleo;
+        WaitDI di_EOCycle,1\MaxTime:=1;
+        Reset do_Fin_Martilleo;
+        !
+    ERROR
+        IF ERRNO=ERR_WAIT_MAXTIME THEN
+            !
+            IF DOutput(do_Fin_Martilleo)=0 THEN
+                WHILE di_EOCycle<>0 DO
+                    UIMsgBox\Header:="Fin de ciclo de Martilleo"," Espera fin de ciclo = 0"\Buttons:=btnNone\Icon:=iconWarning\MaxTime:=1\BreakFlag:=err_var_s5;
+                ENDWHILE
+                RETRY;
+            ENDIF
+            !
+            IF DOutput(do_Fin_Martilleo)=1 THEN
+                UIMsgBox\Header:="Fin de ciclo de Martilleo"," Espera fin de ciclo = 1"\Buttons:=btnNone\Icon:=iconWarning\DIBreak:=di_EOCycle\BreakFlag:=err_var_s5;
+                RETRY;
+            ENDIF
+            !
+        ENDIF
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+
+    PROC Applic_fault(string Fault,string Reason)
+        !
+        ! Application fault
+        Set do_Fallo_Aplic;
+        UIMsgBox\Header:="Error de aplicación R1",Fault\MsgLine2:="---------------------------------------------"\MsgLine3:=Reason\Buttons:=btnOk\Icon:=iconError;
+        Reset do_Fallo_Aplic;
+        !
+        !=============
+        !EXIT PROGRAM
+        !=============
+    ENDPROC
+    
+    PROC Check_Superv_Mov()
+		!
+		WHILE DOutput(do_Mot_On_Sup) = 0 DO
+			Set do_Fallo_aplic;
+			TPReadFK Superv_Mov, "SUPERVISION DE MOVIMIENTO DESACTIVADO    ACTIVAR DESDE PANEL CONTROL", stEmpty, stEmpty, stEmpty, stEmpty, "OK";
+			Reset do_Fallo_aplic;
+		ENDWHILE
+		!
+	ENDPROC
+    
+ENDMODULE

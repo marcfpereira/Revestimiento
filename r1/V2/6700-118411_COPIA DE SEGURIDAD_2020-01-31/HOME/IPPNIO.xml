@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IPPNIO>
+	<Version>
+		<UUID ExCRC="1">BE80B267ABFC40AABD987B7941B57D96</UUID>
+		<CfgBrokerVersion>18.630.0.38</CfgBrokerVersion>
+		<CRC CRCVal="2411089395" ExCRC="1"></CRC>
+	</Version>
+	<CtlrParas>
+		<CtlrIP d1="192" d2="168" d3="0" d4="21" ExCRC="1"></CtlrIP>
+		<CtlrMask d1="255" d2="255" d3="255" d4="0" ExCRC="1"></CtlrMask>
+		<CtlrGate d1="192" d2="168" d3="0" d4="21" ExCRC="1"></CtlrGate>
+		<StatN>revestim-rb1irc5-pnio</StatN>
+		<Station ExCRC="1"></Station>
+		<DevName ExCRC="1"></DevName>
+		<ModEquId ExCRC="1"></ModEquId>
+		<FDCMLFile>Profinet\KW-Software\KW-Softwarev01_3.50.xml</FDCMLFile>
+		<CEId>CommEnt_3</CEId>
+	</CtlrParas>
+	<ARs>
+		<AR BlVers="256" ARTyp="IO_AR_SINGLE" ARUID="1" MulWrt="false" PRL="NO">
+			<ARUUID d1="1765517740" d2="59456" d3="19502" d4="177" d5="173" d6="27" d7="189" d8="134" d9="128" d10="108" d11="185"></ARUUID>
+			<ARProp State="PRIMARY" SVTO="NOT_ALLOWED" PSrv="CM_INITIATOR" DRate="DR_AT_LEAST_100_MBIT" CRTr="SRT_TRANSPORT" CfgDiff="NOT_ALLOWED" LogConStat="YES" IgnFS="NO" Safety="NO" StartAR="YES" ArCRC="1650594154"></ARProp>
+			<CRs CRCnt="2">
+				<CRPara BlVers="256" CRID="1" RTCls="RT_CLASS1_RTC" MdRedn="false" CRTyp="INPUT_CR" DatLn="14" FrID="49152" SndClc="32" RedRat="8" Phs="8" Seq="0" FrOffst="BEST_EFFORT" WtchD="24" DatHld="24" APDUOffst="42">
+					<CRHdr VLID="NO_VLANID" CRPrio="IOCR_PRIORITY"></CRHdr>
+					<MCAddr d1="0" d2="0" d3="0" d4="0" d5="0" d6="0"></MCAddr>
+					<RelAPICRs APICnt="1">
+						<APICR API="0">
+							<RelDatas RelDatCnt="5">
+								<RelDat SlNr="0" SSlNr="1"></RelDat>
+								<RelDat SlNr="0" SSlNr="32768"></RelDat>
+								<RelDat SlNr="0" SSlNr="32769"></RelDat>
+								<RelDat SlNr="0" SSlNr="32770"></RelDat>
+								<RelDat SlNr="1" SSlNr="1"></RelDat>
+							</RelDatas>
+							<RelIOCSs RelIOCSCnt="1">
+								<RelIOCS SlNr="2" SSlNr="1"></RelIOCS>
+							</RelIOCSs>
+						</APICR>
+					</RelAPICRs>
+				</CRPara>
+				<CRPara BlVers="256" CRID="1" RTCls="RT_CLASS1_RTC" MdRedn="false" CRTyp="OUTPUT_CR" DatLn="14" FrID="65535" SndClc="32" RedRat="8" Phs="8" Seq="0" FrOffst="BEST_EFFORT" WtchD="24" DatHld="24">
+					<CRHdr VLID="NO_VLANID" CRPrio="IOCR_PRIORITY"></CRHdr>
+					<MCAddr d1="0" d2="0" d3="0" d4="0" d5="0" d6="0"></MCAddr>
+					<RelAPICRs APICnt="1">
+						<APICR API="0">
+							<RelDatas RelDatCnt="1">
+								<RelDat SlNr="2" SSlNr="1"></RelDat>
+							</RelDatas>
+							<RelIOCSs RelIOCSCnt="5">
+								<RelIOCS SlNr="0" SSlNr="1"></RelIOCS>
+								<RelIOCS SlNr="0" SSlNr="32768"></RelIOCS>
+								<RelIOCS SlNr="0" SSlNr="32769"></RelIOCS>
+								<RelIOCS SlNr="0" SSlNr="32770"></RelIOCS>
+								<RelIOCS SlNr="1" SSlNr="1"></RelIOCS>
+							</RelIOCSs>
+						</APICR>
+					</RelAPICRs>
+				</CRPara>
+			</CRs>
+			<ModParas ModParCnt="3">
+				<ModPara SlNr="0">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\SERRA\Modules\DAP_SERRA PRODUCTS_20140117-POF_DAP 4.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+				<ModPara SlNr="1">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\SERRA\Modules\SERRA PRODUCTS_20140117-  8 byte  I_ID_Mod_13.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+				<ModPara SlNr="2">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\SERRA\Modules\SERRA PRODUCTS_20140117-  8 byte  O_ID_Mod_14.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+			</ModParas>
+			<SMParas SMCnt="3">
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="0" ModID="4" ModProp="0">
+							<SMs SMCnt="4">
+								<SMDes SSlNr="32768" SMID="2" NdID="6692">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="10"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="0"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\SERRA\Modules\DAP_SERRA PRODUCTS_20140117-POF_DAP 4.xml</FDCMLFile>
+									<CEId>ceSubModuleInt1</CEId>
+								</SMDes>
+								<SMDes SSlNr="32769" SMID="3" NdID="6693">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="11"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="1"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\SERRA\Modules\DAP_SERRA PRODUCTS_20140117-POF_DAP 4.xml</FDCMLFile>
+									<CEId>ceSubModulePort1</CEId>
+								</SMDes>
+								<SMDes SSlNr="32770" SMID="3" NdID="6694">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="12"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="2"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\SERRA\Modules\DAP_SERRA PRODUCTS_20140117-POF_DAP 4.xml</FDCMLFile>
+									<CEId>ceSubModulePort2</CEId>
+								</SMDes>
+								<SMDes SSlNr="1" SMID="1" NdID="6695">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="13"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="3"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\SERRA\Modules\DAP_SERRA PRODUCTS_20140117-POF_DAP 4.xml</FDCMLFile>
+									<CEId>ceSubModule1</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="1" ModID="50" ModProp="0">
+							<SMs SMCnt="1">
+								<SMDes SSlNr="1" SMID="1" NdID="6713">
+									<SMProp Shar="NO_SHARED_INPUT" SMTyp="INPUT"></SMProp>
+									<SMElDess ElCnt="3">
+										<SMElDes Intpret="DATA" Descr="DATA_INPUT" Len="8" SubsMod="NULL_VALUE" Offst="1"></SMElDes>
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="9"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="4"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\SERRA\Modules\SERRA PRODUCTS_20140117-  8 byte  I_ID_Mod_13.xml</FDCMLFile>
+									<CEId>ceModule</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="2" ModID="51" ModProp="0">
+							<SMs SMCnt="1">
+								<SMDes SSlNr="1" SMID="1" NdID="6715">
+									<SMProp Shar="INVALID" SMTyp="OUTPUT"></SMProp>
+									<SMElDess ElCnt="3">
+										<SMElDes Intpret="IOCS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="0"></SMElDes>
+										<SMElDes Intpret="DATA" Descr="DATA_OUTPUT" Len="8" SubsMod="NULL_VALUE" Offst="5"></SMElDes>
+										<SMElDes Intpret="IOPS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="13"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\SERRA\Modules\SERRA PRODUCTS_20140117-  8 byte  O_ID_Mod_14.xml</FDCMLFile>
+									<CEId>ceModule</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+			</SMParas>
+			<AlCRParas AlCRCnt="1">
+				<AlCRPara BlVers="256" AlCRPrTp="DATA_RTA_PDU" Prio="USER_PRIORITY" RTATmout="500" Retr="3" LocAlRef="0" MaxAlLen="200"></AlCRPara>
+			</AlCRParas>
+			<DevParas>
+				<DevPara DevID="1" VndID="499" DevIns="1" StatNLen="7" StatN="serrar1" IPovDNS="false" UseIODevIpAdr="NO">
+					<IP d1="192" d2="168" d3="0" d4="62"></IP>
+					<Mask d1="255" d2="255" d3="255" d4="0"></Mask>
+					<Gate d1="192" d2="168" d3="0" d4="62"></Gate>
+					<Station ExCRC="1"></Station>
+					<DevName ExCRC="1"></DevName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\SERRA\SERRA PRODUCTS_20140117_SERRA-PNIO-POF_DAP 4.xml</FDCMLFile>
+					<CEId>CommEnt_1</CEId>
+				</DevPara>
+			</DevParas>
+			<ARParas>
+				<ARPara SlNr="0" SSlNr="32769" Idx="32865" ParaLen="20">
+					<Para>0223001001000000000000140000000000000000</Para>
+				</ARPara>
+				<ARPara SlNr="0" SSlNr="32770" Idx="32865" ParaLen="20">
+					<Para>0223001001000000000000140000000000000000</Para>
+				</ARPara>
+			</ARParas>
+		</AR>
+		<AR BlVers="256" ARTyp="IO_AR_SINGLE" ARUID="2" MulWrt="true" PRL="NO">
+			<ARUUID d1="3703536433" d2="42119" d3="18380" d4="164" d5="160" d6="140" d7="113" d8="1" d9="212" d10="62" d11="119"></ARUUID>
+			<ARProp State="PRIMARY" SVTO="NOT_ALLOWED" PSrv="CM_INITIATOR" DRate="DR_AT_LEAST_100_MBIT" CRTr="SRT_TRANSPORT" CfgDiff="NOT_ALLOWED" LogConStat="YES" IgnFS="NO" Safety="NO" StartAR="YES" ArCRC="1867795964"></ARProp>
+			<CRs CRCnt="2">
+				<CRPara BlVers="256" CRID="2" RTCls="RT_CLASS1_RTC" MdRedn="false" CRTyp="INPUT_CR" DatLn="8" FrID="49153" SndClc="32" RedRat="8" Phs="7" Seq="0" FrOffst="BEST_EFFORT" WtchD="24" DatHld="24" APDUOffst="42">
+					<CRHdr VLID="NO_VLANID" CRPrio="IOCR_PRIORITY"></CRHdr>
+					<MCAddr d1="0" d2="0" d3="0" d4="0" d5="0" d6="0"></MCAddr>
+					<RelAPICRs APICnt="1">
+						<APICR API="0">
+							<RelDatas RelDatCnt="6">
+								<RelDat SlNr="0" SSlNr="1"></RelDat>
+								<RelDat SlNr="0" SSlNr="32768"></RelDat>
+								<RelDat SlNr="0" SSlNr="32769"></RelDat>
+								<RelDat SlNr="0" SSlNr="32770"></RelDat>
+								<RelDat SlNr="1" SSlNr="1"></RelDat>
+								<RelDat SlNr="3" SSlNr="1"></RelDat>
+							</RelDatas>
+							<RelIOCSs RelIOCSCnt="1">
+								<RelIOCS SlNr="2" SSlNr="1"></RelIOCS>
+							</RelIOCSs>
+						</APICR>
+					</RelAPICRs>
+				</CRPara>
+				<CRPara BlVers="256" CRID="2" RTCls="RT_CLASS1_RTC" MdRedn="false" CRTyp="OUTPUT_CR" DatLn="8" FrID="65535" SndClc="32" RedRat="8" Phs="7" Seq="0" FrOffst="BEST_EFFORT" WtchD="24" DatHld="24">
+					<CRHdr VLID="NO_VLANID" CRPrio="IOCR_PRIORITY"></CRHdr>
+					<MCAddr d1="0" d2="0" d3="0" d4="0" d5="0" d6="0"></MCAddr>
+					<RelAPICRs APICnt="1">
+						<APICR API="0">
+							<RelDatas RelDatCnt="1">
+								<RelDat SlNr="2" SSlNr="1"></RelDat>
+							</RelDatas>
+							<RelIOCSs RelIOCSCnt="6">
+								<RelIOCS SlNr="0" SSlNr="1"></RelIOCS>
+								<RelIOCS SlNr="0" SSlNr="32768"></RelIOCS>
+								<RelIOCS SlNr="0" SSlNr="32769"></RelIOCS>
+								<RelIOCS SlNr="0" SSlNr="32770"></RelIOCS>
+								<RelIOCS SlNr="1" SSlNr="1"></RelIOCS>
+								<RelIOCS SlNr="3" SSlNr="1"></RelIOCS>
+							</RelIOCSs>
+						</APICR>
+					</RelAPICRs>
+				</CRPara>
+			</CRs>
+			<ModParas ModParCnt="4">
+				<ModPara SlNr="0">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\Murrelektronik\Modules\DAP_MVK_MPNIO_20150902-55529 MVK IRT DO8 DI8_55529_V40.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+				<ModPara SlNr="1">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\Murrelektronik\Modules\MVK_MPNIO_20150902-Power module_1.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+				<ModPara SlNr="2">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\Murrelektronik\Modules\MVK_MPNIO_20150902-Outputs ports 0-3_14.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+				<ModPara SlNr="3">
+					<ModName ExCRC="1"></ModName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\Murrelektronik\Modules\MVK_MPNIO_20150902-Inputs ports 4-7_13.xml</FDCMLFile>
+					<CEId>ceModule</CEId>
+				</ModPara>
+			</ModParas>
+			<SMParas SMCnt="4">
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="0" ModID="55529" ModProp="0">
+							<SMs SMCnt="4">
+								<SMDes SSlNr="32768" SMID="2" NdID="6725">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="3"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="0"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\DAP_MVK_MPNIO_20150902-55529 MVK IRT DO8 DI8_55529_V40.xml</FDCMLFile>
+									<CEId>ceSubModuleInt1</CEId>
+								</SMDes>
+								<SMDes SSlNr="32769" SMID="3" NdID="6726">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="4"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="1"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\DAP_MVK_MPNIO_20150902-55529 MVK IRT DO8 DI8_55529_V40.xml</FDCMLFile>
+									<CEId>ceSubModulePort1</CEId>
+								</SMDes>
+								<SMDes SSlNr="32770" SMID="4" NdID="6727">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="5"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="2"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\DAP_MVK_MPNIO_20150902-55529 MVK IRT DO8 DI8_55529_V40.xml</FDCMLFile>
+									<CEId>ceSubModulePort2</CEId>
+								</SMDes>
+								<SMDes SSlNr="1" SMID="1" NdID="6728">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="6"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="3"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\DAP_MVK_MPNIO_20150902-55529 MVK IRT DO8 DI8_55529_V40.xml</FDCMLFile>
+									<CEId>ceSubModule1</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="1" ModID="1" ModProp="0">
+							<SMs SMCnt="1">
+								<SMDes SSlNr="1" SMID="1" NdID="6729">
+									<SMProp Shar="INVALID" SMTyp="NO_IO"></SMProp>
+									<SMElDess ElCnt="2">
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="7"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="4"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\MVK_MPNIO_20150902-Power module_1.xml</FDCMLFile>
+									<CEId>ceModule</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="2" ModID="14" ModProp="0">
+							<SMs SMCnt="1">
+								<SMDes SSlNr="1" SMID="1" NdID="6731">
+									<SMProp Shar="INVALID" SMTyp="OUTPUT"></SMProp>
+									<SMElDess ElCnt="3">
+										<SMElDes Intpret="IOCS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="0"></SMElDes>
+										<SMElDes Intpret="DATA" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="6"></SMElDes>
+										<SMElDes Intpret="IOPS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="7"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\MVK_MPNIO_20150902-Outputs ports 0-3_14.xml</FDCMLFile>
+									<CEId>ceModule</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+				<SMPara>
+					<RelAPISMs BlVers="256" RelAPICnt="1">
+						<APISM API="0" SlNr="3" ModID="13" ModProp="0">
+							<SMs SMCnt="1">
+								<SMDes SSlNr="1" SMID="1" NdID="6732">
+									<SMProp Shar="NO_SHARED_INPUT" SMTyp="INPUT"></SMProp>
+									<SMElDess ElCnt="3">
+										<SMElDes Intpret="DATA" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="1"></SMElDes>
+										<SMElDes Intpret="IOPS" Descr="DATA_INPUT" Len="1" SubsMod="NULL_VALUE" Offst="2"></SMElDes>
+										<SMElDes Intpret="IOCS" Descr="DATA_OUTPUT" Len="1" SubsMod="NULL_VALUE" Offst="5"></SMElDes>
+									</SMElDess>
+									<ModName ExCRC="1"></ModName>
+									<ModEquId ExCRC="1"></ModEquId>
+									<FDCMLFile>PROFINET\Murrelektronik\Modules\MVK_MPNIO_20150902-Inputs ports 4-7_13.xml</FDCMLFile>
+									<CEId>ceModule</CEId>
+								</SMDes>
+							</SMs>
+						</APISM>
+					</RelAPISMs>
+				</SMPara>
+			</SMParas>
+			<AlCRParas AlCRCnt="1">
+				<AlCRPara BlVers="256" AlCRPrTp="DATA_RTA_PDU" Prio="USER_PRIORITY" RTATmout="500" Retr="3" LocAlRef="0" MaxAlLen="200"></AlCRPara>
+			</AlCRParas>
+			<DevParas>
+				<DevPara DevID="289" VndID="303" DevIns="1" StatNLen="7" StatN="pinzar1" IPovDNS="false" UseIODevIpAdr="NO">
+					<IP d1="192" d2="168" d3="0" d4="61"></IP>
+					<Mask d1="255" d2="255" d3="255" d4="0"></Mask>
+					<Gate d1="192" d2="168" d3="0" d4="61"></Gate>
+					<Station ExCRC="1"></Station>
+					<DevName ExCRC="1"></DevName>
+					<ModEquId ExCRC="1"></ModEquId>
+					<FDCMLFile>PROFINET\Murrelektronik\MVK_MPNIO_20150902_MVK-MPNIO-IRT-V40_55529_V40.xml</FDCMLFile>
+					<CEId>CommEnt_1</CEId>
+				</DevPara>
+			</DevParas>
+			<ARParas>
+				<ARPara SlNr="0" SSlNr="1" Idx="1" ParaLen="5">
+					<Para>0F0F0F0F08</Para>
+				</ARPara>
+			</ARParas>
+		</AR>
+	</ARs>
+</IPPNIO>
